@@ -66,6 +66,7 @@ async fn main() -> Result<()> {
             .allowlist_var("CLONE_.*")
             // Errors
             .allowlist_var("E.*")
+            .allowlist_var("_IO.*")
             // mmap
             .allowlist_var("MAP.*")
             // Signals
@@ -78,6 +79,8 @@ async fn main() -> Result<()> {
             .allowlist_var("POLL.*")
             // Memory protection
             .allowlist_var("PROT.*")
+            .allowlist_var("TC.*")
+            .allowlist_var("TIO.*")
             // Open constants from fcntl
             .allowlist_var("O_.*")
             // Wait constants
@@ -86,19 +89,20 @@ async fn main() -> Result<()> {
             .allowlist_type("clone_.*")
             // pollfd
             .allowlist_type("poll.*")
+            .allowlist_type("term.*")
             // stat structs
             .allowlist_type("stat.*")
             // sigset
             .allowlist_type("sigact.*")
             // socketaddr
             .allowlist_type("sock.*")
+            .allowlist_type("win.*")
             // timespec
             .allowlist_type("__kernel_time.*")
             // signal functions
             .allowlist_type("__sig.*")
             // signal functions
-            .allowlist_function("__sig.*")
-            ;
+            .allowlist_function("__sig.*");
         for header in &headers {
             builder = builder.header(enrich_header(header, arch.rust_name)?);
         }
@@ -162,7 +166,10 @@ async fn main() -> Result<()> {
             .default_macro_constant_type(MacroTypeVariation::Signed)
             .use_core()
             // Need to put types separately, since it does some wild re-defs.
-            .header(enrich_header(&PathBuf::from("linux").join("elf.h"), arch.rust_name)?)
+            .header(enrich_header(
+                &PathBuf::from("linux").join("elf.h"),
+                arch.rust_name,
+            )?)
             // Elf header 64/32-bit
             .allowlist_type("Elf.*_Ehdr")
             // Elf section header 64/32-bit
@@ -184,7 +191,7 @@ async fn main() -> Result<()> {
             arch: elf_types,
         },
     )
-        .await?;
+    .await?;
     Ok(())
 }
 
@@ -206,6 +213,10 @@ fn headers() -> Vec<PathBuf> {
         PathBuf::from("asm").join("socket.h"),
         PathBuf::from("linux").join("un.h"),
         PathBuf::from("linux").join("signal.h"),
+        // ioctl
+        PathBuf::from("linux").join("ioctl.h"),
+        // Termios
+        PathBuf::from("linux").join("termios.h"),
         // Wnohang etc
         PathBuf::from("linux").join("wait.h"),
         // Clockids
