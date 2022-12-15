@@ -2,7 +2,7 @@ use std::fmt::Write;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use bindgen::{Bindings, MacroTypeVariation};
+use bindgen::{Bindings, Builder, MacroTypeVariation};
 
 const SUPPORTED_ARCHES: &[SupportedArch] = &[
     SupportedArch {
@@ -18,6 +18,81 @@ const SUPPORTED_ARCHES: &[SupportedArch] = &[
     },
 ];
 
+const GENERATE: &[GenSpec] = &[
+    GenSpec {
+        headers: &["linux/auxvec.h"],
+        allow_vars: &["AT.*"],
+        allow_types: &[],
+        allow_functions: &[],
+    },
+    GenSpec {
+        headers: &["linux/fcntl.h"],
+        allow_vars: &["O_.*"],
+        allow_types: &[],
+        allow_functions: &[],
+    },
+    GenSpec {
+        headers: &["linux/errno.h"],
+        allow_vars: &["E.*"],
+        allow_types: &[],
+        allow_functions: &[],
+    },
+    GenSpec {
+        headers: &["linux/stat.h"],
+        allow_vars: &[],
+        allow_types: &["stat.*"],
+        allow_functions: &[],
+    },
+    GenSpec {
+        headers: &["linux/signal.h"],
+        allow_vars: &["SIG.*"],
+        allow_types: &["__sig.*", "sigact.*"],
+        allow_functions: &["__sig.*"],
+    },
+    GenSpec {
+        headers: &["linux/poll.h"],
+        allow_vars: &["POLL.*"],
+        allow_types: &["poll.*"],
+        allow_functions: &[],
+    },
+    GenSpec {
+        headers: &["linux/ioctl.h"],
+        allow_vars: &["_IO.*"],
+        allow_types: &[],
+        allow_functions: &[],
+    },
+    GenSpec {
+        headers: &["linux/termios.h"],
+        allow_vars: &["TC.*", "TIO.*"],
+        allow_types: &["term.*"],
+        allow_functions: &[],
+    },
+    GenSpec {
+        headers: &["linux/time.h"],
+        allow_vars: &["CLOCK.*"],
+        allow_types: &[],
+        allow_functions: &[],
+    },
+    GenSpec {
+        headers: &["linux/wait.h"],
+        allow_vars: &["W.*"],
+        allow_types: &[],
+        allow_functions: &[],
+    },
+    GenSpec {
+        headers: &["linux/elf.h"],
+        allow_vars: &[],
+        allow_types: &["Elf.*_Ehdr", "Elf.*_Shdr", "Elf.*_Dyn", "Elf.*_Sym"],
+        allow_functions: &[],
+    },
+    GenSpec {
+        headers: &["types.h"],
+        allow_vars: &[],
+        allow_types: &["DT.*"],
+        allow_functions: &[],
+    },
+];
+
 #[derive(Debug, Copy, Clone)]
 struct SupportedArch {
     linux_name: &'static str,
@@ -29,6 +104,13 @@ struct SupportedArch {
 struct GeneratedBinds {
     bind_name: String,
     arch: Vec<ArchGenerated>,
+}
+
+struct GenSpec {
+    headers: &'static [&'static str],
+    allow_vars: &'static [&'static str],
+    allow_types: &'static [&'static str],
+    allow_functions: &'static [&'static str],
 }
 
 #[derive(Debug)]
@@ -57,41 +139,19 @@ async fn main() -> Result<()> {
             .use_core()
             // Address family
             .allowlist_var("AF_.*")
-            // We don't want everything, just what we're using, otherwise this repo will be huge
-            // AT_ constants
-            .allowlist_var("AT_.*")
-            // Clock constants
-            .allowlist_var("CLOCK_.*")
             // Clone constants
             .allowlist_var("CLONE_.*")
-            // Errors
-            .allowlist_var("E.*")
-            .allowlist_var("_IO.*")
             // mmap
             .allowlist_var("MAP.*")
             // Signals
             .allowlist_var("_N.*")
-            .allowlist_var("SIG.*")
             .allowlist_var("SA_.*")
             // User `mode` constants, file permissions etc
             .allowlist_var("S_.*")
-            // Poll constants
-            .allowlist_var("POLL.*")
             // Memory protection
             .allowlist_var("PROT.*")
-            .allowlist_var("TC.*")
-            .allowlist_var("TIO.*")
-            // Open constants from fcntl
-            .allowlist_var("O_.*")
-            // Wait constants
-            .allowlist_var("W.*")
             // Clone args
             .allowlist_type("clone_.*")
-            // pollfd
-            .allowlist_type("poll.*")
-            .allowlist_type("term.*")
-            // stat structs
-            .allowlist_type("stat.*")
             // sigset
             .allowlist_type("sigact.*")
             // socketaddr
@@ -120,79 +180,26 @@ async fn main() -> Result<()> {
         },
     )
     .await?;
-    let mut libc_compat_types = vec![];
-    for arch in SUPPORTED_ARCHES {
-        let incl = PathBuf::from("include-kernel-headers")
-            .join(arch.rust_name)
-            .join("sysroot")
-            .join("include");
-        let bindings = bindgen::builder()
-            .clang_arg("-std=gnu11")
-            .clang_arg(format!("--target={}", arch.clang_target))
-            .detect_include_paths(false)
-            .clang_arg(format!("-I{}", path_like_to_str(&incl)?))
-            .layout_tests(false)
-            .default_macro_constant_type(MacroTypeVariation::Signed)
-            .use_core()
-            // Need to put types separately, since it does some wild re-defs.
-            .header(enrich_header(&PathBuf::from("types.h"), arch.rust_name)?)
-            .allowlist_var("DT_.*")
-            .generate()?;
-        libc_compat_types.push(ArchGenerated {
-            arch: *arch,
-            bindings,
-        })
-    }
-    write_bindings(
-        &out_path,
-        GeneratedBinds {
-            bind_name: "nolibc".to_string(),
-            arch: libc_compat_types,
-        },
-    )
-    .await?;
-    let mut elf_types = vec![];
-    for arch in SUPPORTED_ARCHES {
-        let incl = PathBuf::from("include-kernel-headers")
-            .join(arch.rust_name)
-            .join("sysroot")
-            .join("include");
-        let bindings = bindgen::builder()
-            .clang_arg("-std=gnu11")
-            .clang_arg(format!("--target={}", arch.clang_target))
-            .detect_include_paths(false)
-            .clang_arg(format!("-I{}", path_like_to_str(&incl)?))
-            .layout_tests(false)
-            .default_macro_constant_type(MacroTypeVariation::Signed)
-            .use_core()
-            // Need to put types separately, since it does some wild re-defs.
-            .header(enrich_header(
-                &PathBuf::from("linux").join("elf.h"),
-                arch.rust_name,
-            )?)
-            // Elf header 64/32-bit
-            .allowlist_type("Elf.*_Ehdr")
-            // Elf section header 64/32-bit
-            .allowlist_type("Elf.*_Shdr")
-            // Elf dyn section 64/32-bit
-            .allowlist_type("Elf.*_Dyn")
-            // Elf symbol 64/32-bit
-            .allowlist_type("Elf.*_Sym")
-            .generate()?;
-        elf_types.push(ArchGenerated {
-            arch: *arch,
-            bindings,
-        })
-    }
-    write_bindings(
-        &out_path,
-        GeneratedBinds {
-            bind_name: "elf".to_string(),
-            arch: elf_types,
-        },
-    )
-    .await?;
     Ok(())
+}
+
+fn incl_dir(arch_rust_name: &str) -> PathBuf {
+    PathBuf::from("include-kernel-headers")
+        .join(arch_rust_name)
+        .join("sysroot")
+        .join("include")
+}
+
+fn base_builder(arch: &SupportedArch) -> Result<Builder> {
+    let incl = incl_dir(arch.rust_name);
+    Ok(bindgen::builder()
+        .clang_arg("-std=gnu11")
+        .clang_arg(format!("--target={}", arch.clang_target))
+        .detect_include_paths(false)
+        .clang_arg(format!("-I{}", path_like_to_str(&incl)?))
+        .layout_tests(false)
+        .default_macro_constant_type(MacroTypeVariation::Signed)
+        .use_core())
 }
 
 fn headers() -> Vec<PathBuf> {
@@ -200,23 +207,11 @@ fn headers() -> Vec<PathBuf> {
         // Arch platform specifics
         PathBuf::from("arch.h"),
         // typedefs, uint_t etc
-        PathBuf::from("std.h"),
-        PathBuf::from("linux").join("auxvec.h"),
-        PathBuf::from("linux").join("fcntl.h"),
-        PathBuf::from("linux").join("errno.h"),
-        PathBuf::from("linux").join("signal.h"),
-        PathBuf::from("linux").join("stat.h"),
         PathBuf::from("asm").join("stat.h"),
         PathBuf::from("linux").join("mman.h"),
-        PathBuf::from("linux").join("poll.h"),
         PathBuf::from("linux").join("socket.h"),
         PathBuf::from("asm").join("socket.h"),
         PathBuf::from("linux").join("un.h"),
-        PathBuf::from("linux").join("signal.h"),
-        // ioctl
-        PathBuf::from("linux").join("ioctl.h"),
-        // Termios
-        PathBuf::from("linux").join("termios.h"),
         // Wnohang etc
         PathBuf::from("linux").join("wait.h"),
         // Clockids
