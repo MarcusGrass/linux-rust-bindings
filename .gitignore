@@ -2,4 +2,4 @@ target
 .idea
 *.iml
 *.cmd
-include-kernel-headers
+include-kernel-headers/**/*.h
