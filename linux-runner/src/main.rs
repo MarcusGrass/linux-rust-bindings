@@ -18,24 +18,80 @@ const SUPPORTED_ARCHES: &[SupportedArch] = &[
     },
 ];
 
-const GENERATE: &[GenSpec] = &[
-    GenSpec::new_vars("aux", &["linux/auxvec.h"], &["AT.*"]),
-    GenSpec::new("elf", &["linux/elf.h"], &[], &["Elf.*_Ehdr", "Elf.*_Shdr", "Elf.*_Dyn", "Elf.*_Sym"], &[]),
-    GenSpec::new_vars("errno", &["linux/errno.h"], &["E.*"]),
-    GenSpec::new_vars("fcntl", &["linux/fcntl.h"], &["O_.*", "AT_.*"]),
-    GenSpec::new_vars("ioctl", &["linux/ioctl.h"], &["_IO.*"]),
-    GenSpec::new_vars("mman", &["linux/mman.h"], &["MAP.*", "PROT.*"]),
-    GenSpec::new("poll", &["linux/poll.h"], &["POLL.*"], &["poll.*"], &[]),
-    GenSpec::new("sched", &["linux/sched.h"], &["CLONE.*"], &["clone.*"], &[]),
-    GenSpec::new("signal", &["linux/signal.h"], &["SIG.*", "SA.*"], &["__sig.*", "sigact.h"], &[]),
-    GenSpec::new("socket", &["linux/un.h", "asm/socket.h"], &["AF.*"], &["sock.*"], &[]),
-    GenSpec::new("stat", &["asm/stat.h", "linux/stat.h"], &["S_.*"], &["stat.*"], &[]),
-    GenSpec::new("termios", &["linux/termios.h"], &["TC.*", "TIO.*"], &["term.*", "winsize"], &[]),
-    GenSpec::new("time", &["linux/time.h", "linux/time_types.h"], &["CLOCK.*"], &["__kernel_timespec"], &[]),
-    GenSpec::new_vars("types", &["types.h"], &["DT.*"]),
-    GenSpec::new("utsname", &["linux/utsname.h"], &[], &["new_uts.*"], &[]),
-    GenSpec::new_vars("wait", &["linux/wait.h"], &["W.*"]),
-];
+fn generate_files() -> [GenSpec; 16] {
+    [
+        GenSpec::new("aux", &["linux/auxvec.h"], |bldr: Builder| {
+            bldr.allowlist_var("AT.*")
+        }),
+        GenSpec::new("elf", &["linux/elf.h"], |bldr: Builder| {
+            bldr.allowlist_type("Elf.*_Ehdr")
+                .allowlist_type("Elf.*_Shdr")
+                .allowlist_type("Elf.*_Dyn")
+                .allowlist_type("Elf.*_Sym")
+        }),
+        GenSpec::new("errno", &["linux/errno.h"], |bldr: Builder| {
+            bldr.allowlist_var("E.*")
+        }),
+        GenSpec::new("fcntl", &["linux/fcntl.h"], |bldr: Builder| {
+            bldr.allowlist_var("O_.*").allowlist_var("AT_.*")
+        }),
+        GenSpec::new("ioctl", &["linux/ioctl.h"], |bldr: Builder| {
+            bldr.allowlist_var("_IO.*")
+        }),
+        GenSpec::new("mman", &["linux/mman.h"], |bldr: Builder| {
+            bldr.allowlist_var("MAP.*").allowlist_var("PROT.*")
+        }),
+        GenSpec::new("poll", &["linux/poll.h"], |bldr: Builder| {
+            bldr.allowlist_var("POLL.*").allowlist_type("poll.*")
+        }),
+        GenSpec::new("sched", &["linux/sched.h"], |bldr: Builder| {
+            bldr.allowlist_var("CLONE.*").allowlist_type("clone.*")
+        }),
+        GenSpec::new("signal", &["linux/signal.h"], |bldr: Builder| {
+            bldr.allowlist_var("SIG.*")
+                .allowlist_var("SA.*")
+                .allowlist_type("__sig.*")
+                .allowlist_type("sigact.h")
+        }),
+        GenSpec::new(
+            "socket",
+            &["linux/un.h", "asm/socket.h"],
+            |bldr: Builder| bldr.allowlist_var("AF.*").allowlist_type("sock.*"),
+        ),
+        GenSpec::new("stat", &["asm/stat.h", "linux/stat.h"], |bldr: Builder| {
+            bldr.allowlist_var("S_.*").allowlist_type("stat.*")
+        }),
+        GenSpec::new("termios", &["linux/termios.h"], |bldr: Builder| {
+            bldr.allowlist_var("TC.*")
+                .allowlist_var("TIO.*")
+                .allowlist_type("term.*")
+                .allowlist_type("winsize")
+        }),
+        GenSpec::new(
+            "time",
+            &["linux/time.h", "linux/time_types.h"],
+            |bldr: Builder| {
+                bldr.allowlist_var("CLOCK.*")
+                    .allowlist_type("__kernel_timespec")
+                    // Really convenient to derive this here to make time types
+                    .derive_eq(true)
+                    .derive_partialeq(true)
+                    .derive_ord(true)
+                    .derive_partialord(true)
+                    .derive_hash(true)
+            },
+        ),
+        GenSpec::new("types", &["types.h"], |bldr: Builder| {
+            bldr.allowlist_var("DT.*")
+        }),
+        GenSpec::new("utsname", &["linux/utsname.h"], |bldr: Builder| {
+            bldr.allowlist_type("new_uts.*")
+        }),
+        GenSpec::new("wait", &["linux/wait.h"], |bldr: Builder| {
+            bldr.allowlist_var("W.*")
+        }),
+    ]
+}
 
 #[derive(Debug, Copy, Clone)]
 struct SupportedArch {
@@ -53,18 +109,32 @@ struct GeneratedBinds {
 struct GenSpec {
     mod_name: &'static str,
     headers: &'static [&'static str],
-    allow_vars: &'static [&'static str],
-    allow_types: &'static [&'static str],
-    allow_functions: &'static [&'static str],
+    modifier: Box<dyn BuilderModifier>,
+}
+
+trait BuilderModifier {
+    fn modify(&self, builder: Builder) -> Builder;
+}
+
+impl<F> BuilderModifier for F
+where
+    F: Fn(Builder) -> Builder,
+{
+    fn modify(&self, builder: Builder) -> Builder {
+        (self)(builder)
+    }
 }
 
 impl GenSpec {
-    const fn new_vars(mod_name: &'static str, headers: &'static [&'static str], allow_vars: &'static [&'static str]) -> Self {
-        Self { mod_name, headers, allow_vars, allow_types: &[], allow_functions: &[] }
-    }
-
-    const fn new(mod_name: &'static str, headers: &'static [&'static str], allow_vars: &'static [&'static str], allow_types: &'static [&'static str], allow_functions: &'static [&'static str]) -> Self {
-        Self { mod_name, headers, allow_vars, allow_types, allow_functions }
+    fn new<B>(mod_name: &'static str, headers: &'static [&'static str], modifier: B) -> Self
+    where
+        B: BuilderModifier + 'static,
+    {
+        Self {
+            mod_name,
+            headers,
+            modifier: Box::new(modifier),
+        }
     }
 }
 
@@ -77,21 +147,30 @@ struct ArchGenerated {
 #[tokio::main]
 async fn main() -> Result<()> {
     let out_path = PathBuf::from("linux-rust-bindings/src");
-    for gen in GENERATE {
-        let mut arch_specific = vec![];
-        for arch in SUPPORTED_ARCHES {
-            let mut base = base_builder(arch)?;
-            base = complete_builder(arch, gen, base)?;
-            arch_specific.push(ArchGenerated {
-                arch: *arch,
-                bindings: base.generate()?,
-            })
-        }
-        write_bindings(&out_path, GeneratedBinds {
+    for gen in generate_files() {
+        generate(gen, &out_path).await?;
+    }
+    Ok(())
+}
+
+async fn generate(gen: GenSpec, out_path: &Path) -> Result<()> {
+    let mut arch_specific = vec![];
+    for arch in SUPPORTED_ARCHES {
+        let mut base = base_builder(arch)?;
+        base = complete_builder(arch, &gen, base)?;
+        arch_specific.push(ArchGenerated {
+            arch: *arch,
+            bindings: base.generate()?,
+        })
+    }
+    write_bindings(
+        &out_path,
+        GeneratedBinds {
             bind_name: gen.mod_name.to_string(),
             arch: arch_specific,
-        }).await?;
-    }
+        },
+    )
+    .await?;
     Ok(())
 }
 
@@ -118,15 +197,7 @@ fn complete_builder(arch: &SupportedArch, gen: &GenSpec, mut builder: Builder) -
     for header in gen.headers {
         builder = builder.header(enrich_header(header, arch.rust_name)?);
     }
-    for var in gen.allow_vars {
-        builder = builder.allowlist_var(var);
-    }
-    for t in gen.allow_types {
-        builder = builder.allowlist_type(t);
-    }
-    for func in gen.allow_functions {
-        builder = builder.allowlist_function(func);
-    }
+    builder = gen.modifier.modify(builder);
     Ok(builder)
 }
 
@@ -148,10 +219,11 @@ async fn write_bindings(out_dir: &Path, generated: GeneratedBinds) -> Result<()>
     let mod_file = out_dir.join(format!("{}.rs", generated.bind_name));
     let mut mods = String::new();
     tokio::fs::create_dir_all(&mod_dir).await?;
-    for gen in &generated.arch {
+    for gen in generated.arch {
         let name = format!("{}_{}", generated.bind_name, gen.arch.linux_name);
         let target = mod_dir.join(format!("{name}.rs"));
-        tokio::fs::write(&target, gen.bindings.to_string()).await?;
+        let content = gen.bindings.to_string();
+        tokio::fs::write(&target, content).await?;
         let _ = mods.write_fmt(format_args!(
             "#[cfg(target_arch = \"{}\")]\npub mod {name};\n",
             gen.arch.rust_name

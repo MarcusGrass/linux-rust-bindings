@@ -16,7 +16,7 @@ pub const CLOCKS_MASK: i32 = 1;
 pub const CLOCKS_MONO: i32 = 1;
 pub type __kernel_time64_t = ::core::ffi::c_longlong;
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct __kernel_timespec {
     pub tv_sec: __kernel_time64_t,
     pub tv_nsec: ::core::ffi::c_longlong,
