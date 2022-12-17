@@ -33,7 +33,9 @@ fn generate_files() -> [GenSpec; 16] {
             bldr.allowlist_var("E.*")
         }),
         GenSpec::new("fcntl", &["linux/fcntl.h"], |bldr: Builder| {
-            bldr.allowlist_var("O_.*").allowlist_var("AT_.*")
+            bldr.allowlist_var("O_.*")
+                .allowlist_var("AT_.*")
+                .allowlist_var("F_.*")
         }),
         GenSpec::new("ioctl", &["linux/ioctl.h"], |bldr: Builder| {
             bldr.allowlist_var("_IO.*")
