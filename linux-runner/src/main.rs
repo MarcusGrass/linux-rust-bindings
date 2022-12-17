@@ -19,78 +19,22 @@ const SUPPORTED_ARCHES: &[SupportedArch] = &[
 ];
 
 const GENERATE: &[GenSpec] = &[
-    GenSpec {
-        headers: &["linux/auxvec.h"],
-        allow_vars: &["AT.*"],
-        allow_types: &[],
-        allow_functions: &[],
-    },
-    GenSpec {
-        headers: &["linux/fcntl.h"],
-        allow_vars: &["O_.*"],
-        allow_types: &[],
-        allow_functions: &[],
-    },
-    GenSpec {
-        headers: &["linux/errno.h"],
-        allow_vars: &["E.*"],
-        allow_types: &[],
-        allow_functions: &[],
-    },
-    GenSpec {
-        headers: &["linux/stat.h"],
-        allow_vars: &[],
-        allow_types: &["stat.*"],
-        allow_functions: &[],
-    },
-    GenSpec {
-        headers: &["linux/signal.h"],
-        allow_vars: &["SIG.*"],
-        allow_types: &["__sig.*", "sigact.*"],
-        allow_functions: &["__sig.*"],
-    },
-    GenSpec {
-        headers: &["linux/poll.h"],
-        allow_vars: &["POLL.*"],
-        allow_types: &["poll.*"],
-        allow_functions: &[],
-    },
-    GenSpec {
-        headers: &["linux/ioctl.h"],
-        allow_vars: &["_IO.*"],
-        allow_types: &[],
-        allow_functions: &[],
-    },
-    GenSpec {
-        headers: &["linux/termios.h"],
-        allow_vars: &["TC.*", "TIO.*"],
-        allow_types: &["term.*"],
-        allow_functions: &[],
-    },
-    GenSpec {
-        headers: &["linux/time.h"],
-        allow_vars: &["CLOCK.*"],
-        allow_types: &[],
-        allow_functions: &[],
-    },
-    GenSpec {
-        headers: &["linux/wait.h"],
-        allow_vars: &["W.*"],
-        allow_types: &[],
-        allow_functions: &[],
-    },
-    GenSpec {
-        headers: &["linux/elf.h"],
-        allow_vars: &[],
-        allow_types: &["Elf.*_Ehdr", "Elf.*_Shdr", "Elf.*_Dyn", "Elf.*_Sym"],
-        allow_functions: &[],
-    },
-    GenSpec {
-        headers: &["types.h"],
-        allow_vars: &[],
-        allow_types: &["DT.*"],
-        allow_functions: &[],
-    },
+    GenSpec::new_vars("aux", &["linux/auxvec.h"], &["AT.*"]),
+    GenSpec::new("elf", &["linux/elf.h"], &[], &["Elf.*_Ehdr", "Elf.*_Shdr", "Elf.*_Dyn", "Elf.*_Sym"], &[]),
+    GenSpec::new_vars("errno", &["linux/errno.h"], &["E.*"]),
+    GenSpec::new_vars("fcntl", &["linux/fcntl.h"], &["O_.*", "AT_.*"]),
+    GenSpec::new_vars("ioctl", &["linux/ioctl.h"], &["_IO.*"]),
+    GenSpec::new_vars("mman", &["linux/mman.h"], &["MAP.*", "PROT.*"]),
+    GenSpec::new("poll", &["linux/poll.h"], &["POLL.*"], &["poll.*"], &[]),
+    GenSpec::new("sched", &["linux/sched.h"], &["CLONE.*"], &["clone.*"], &[]),
+    GenSpec::new("signal", &["linux/signal.h"], &["SIG.*", "SA.*"], &["__sig.*", "sigact.h"], &[]),
+    GenSpec::new("socket", &["linux/un.h", "asm/socket.h"], &["AF.*"], &["sock.*"], &[]),
+    GenSpec::new("stat", &["asm/stat.h", "linux/stat.h"], &["S_.*"], &["stat.*"], &[]),
+    GenSpec::new("termios", &["linux/termios.h"], &["TC.*", "TIO.*"], &["term.*", "winsize"], &[]),
+    GenSpec::new("time", &["linux/time.h", "linux/time_types.h"], &["CLOCK.*"], &["__kernel_timespec"], &[]),
+    GenSpec::new_vars("types", &["types.h"], &["DT.*"]),
+    GenSpec::new("utsname", &["linux/utsname.h"], &[], &["new_uts.*"], &[]),
+    GenSpec::new_vars("wait", &["linux/wait.h"], &["W.*"]),
 ];
 
 #[derive(Debug, Copy, Clone)]
@@ -107,10 +51,21 @@ struct GeneratedBinds {
 }
 
 struct GenSpec {
+    mod_name: &'static str,
     headers: &'static [&'static str],
     allow_vars: &'static [&'static str],
     allow_types: &'static [&'static str],
     allow_functions: &'static [&'static str],
+}
+
+impl GenSpec {
+    const fn new_vars(mod_name: &'static str, headers: &'static [&'static str], allow_vars: &'static [&'static str]) -> Self {
+        Self { mod_name, headers, allow_vars, allow_types: &[], allow_functions: &[] }
+    }
+
+    const fn new(mod_name: &'static str, headers: &'static [&'static str], allow_vars: &'static [&'static str], allow_types: &'static [&'static str], allow_functions: &'static [&'static str]) -> Self {
+        Self { mod_name, headers, allow_vars, allow_types, allow_functions }
+    }
 }
 
 #[derive(Debug)]
@@ -122,64 +77,21 @@ struct ArchGenerated {
 #[tokio::main]
 async fn main() -> Result<()> {
     let out_path = PathBuf::from("linux-rust-bindings/src");
-    let mut arch_specific = vec![];
-    let headers = headers();
-    for arch in SUPPORTED_ARCHES {
-        let incl = PathBuf::from("include-kernel-headers")
-            .join(arch.rust_name)
-            .join("sysroot")
-            .join("include");
-        let mut builder = bindgen::builder()
-            .clang_arg("-std=gnu11")
-            .clang_arg(format!("--target={}", arch.clang_target))
-            .detect_include_paths(false)
-            .clang_arg(format!("-I{}", path_like_to_str(&incl)?))
-            .layout_tests(false)
-            .default_macro_constant_type(MacroTypeVariation::Signed)
-            .use_core()
-            // Address family
-            .allowlist_var("AF_.*")
-            // Clone constants
-            .allowlist_var("CLONE_.*")
-            // mmap
-            .allowlist_var("MAP.*")
-            // Signals
-            .allowlist_var("_N.*")
-            .allowlist_var("SA_.*")
-            // User `mode` constants, file permissions etc
-            .allowlist_var("S_.*")
-            // Memory protection
-            .allowlist_var("PROT.*")
-            // Clone args
-            .allowlist_type("clone_.*")
-            // sigset
-            .allowlist_type("sigact.*")
-            // socketaddr
-            .allowlist_type("sock.*")
-            .allowlist_type("win.*")
-            // timespec
-            .allowlist_type("__kernel_time.*")
-            // signal functions
-            .allowlist_type("__sig.*")
-            // signal functions
-            .allowlist_function("__sig.*");
-        for header in &headers {
-            builder = builder.header(enrich_header(header, arch.rust_name)?);
+    for gen in GENERATE {
+        let mut arch_specific = vec![];
+        for arch in SUPPORTED_ARCHES {
+            let mut base = base_builder(arch)?;
+            base = complete_builder(arch, gen, base)?;
+            arch_specific.push(ArchGenerated {
+                arch: *arch,
+                bindings: base.generate()?,
+            })
         }
-        let out = builder.generate()?;
-        arch_specific.push(ArchGenerated {
-            arch: *arch,
-            bindings: out,
-        });
-    }
-    write_bindings(
-        &out_path,
-        GeneratedBinds {
-            bind_name: "bindings".to_string(),
+        write_bindings(&out_path, GeneratedBinds {
+            bind_name: gen.mod_name.to_string(),
             arch: arch_specific,
-        },
-    )
-    .await?;
+        }).await?;
+    }
     Ok(())
 }
 
@@ -202,27 +114,23 @@ fn base_builder(arch: &SupportedArch) -> Result<Builder> {
         .use_core())
 }
 
-fn headers() -> Vec<PathBuf> {
-    vec![
-        // Arch platform specifics
-        PathBuf::from("arch.h"),
-        // typedefs, uint_t etc
-        PathBuf::from("asm").join("stat.h"),
-        PathBuf::from("linux").join("mman.h"),
-        PathBuf::from("linux").join("socket.h"),
-        PathBuf::from("asm").join("socket.h"),
-        PathBuf::from("linux").join("un.h"),
-        // Wnohang etc
-        PathBuf::from("linux").join("wait.h"),
-        // Clockids
-        PathBuf::from("linux").join("time.h"),
-        PathBuf::from("linux").join("time_types.h"),
-        // Clone stuff
-        PathBuf::from("linux").join("sched.h"),
-    ]
+fn complete_builder(arch: &SupportedArch, gen: &GenSpec, mut builder: Builder) -> Result<Builder> {
+    for header in gen.headers {
+        builder = builder.header(enrich_header(header, arch.rust_name)?);
+    }
+    for var in gen.allow_vars {
+        builder = builder.allowlist_var(var);
+    }
+    for t in gen.allow_types {
+        builder = builder.allowlist_type(t);
+    }
+    for func in gen.allow_functions {
+        builder = builder.allowlist_function(func);
+    }
+    Ok(builder)
 }
 
-fn enrich_header(input: &Path, arch: &str) -> Result<String> {
+fn enrich_header(input: &str, arch: &str) -> Result<String> {
     let enriched = PathBuf::from("include-kernel-headers")
         .join(arch)
         .join("sysroot")

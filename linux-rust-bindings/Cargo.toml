@@ -6,4 +6,26 @@ license = "MPL-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["all"]
+all = [
+    "aux", "elf", "errno", "fcntl", "ioctl", "mman", "poll", "sched",
+    "signal", "socket", "stat", "termios", "time", "types", "utsname", "wait"
+]
+aux = []
+elf = []
+errno = []
+fcntl = []
+ioctl = []
+mman = []
+poll = []
+sched = []
+signal = []
+socket = []
+stat = []
+termios = []
+time = []
+types = []
+utsname = []
+wait = []
 [dependencies]
