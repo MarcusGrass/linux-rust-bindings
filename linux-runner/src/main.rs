@@ -64,6 +64,10 @@ fn generate_files() -> [GenSpec; 16] {
         GenSpec::new("termios", &["linux/termios.h"], |bldr: Builder| {
             bldr.allowlist_var("TC.*")
                 .allowlist_var("TIO.*")
+                //Input flags
+                .allowlist_var("I.*")
+                .allowlist_var("BRK.*")
+                .allowlist_var("PAR.*")
                 .allowlist_type("term.*")
                 .allowlist_type("winsize")
         }),
