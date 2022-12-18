@@ -2,10 +2,10 @@
 #![no_std]
 #[cfg(feature = "aux")]
 pub mod aux;
-#[cfg(feature = "errno")]
-pub mod errno;
 #[cfg(feature = "elf")]
 pub mod elf;
+#[cfg(feature = "errno")]
+pub mod errno;
 #[cfg(feature = "fcntl")]
 pub mod fcntl;
 #[cfg(feature = "ioctl")]
@@ -26,12 +26,12 @@ pub mod stat;
 pub mod termios;
 #[cfg(feature = "time")]
 pub mod time;
-#[cfg(feature = "wait")]
-pub mod wait;
 #[cfg(feature = "types")]
 pub mod types;
 #[cfg(feature = "utsname")]
 pub mod utsname;
+#[cfg(feature = "wait")]
+pub mod wait;
 
 #[cfg(test)]
 mod tests {}
