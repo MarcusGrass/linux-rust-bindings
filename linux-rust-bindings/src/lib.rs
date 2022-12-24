@@ -1,9 +1,12 @@
 #![allow(non_camel_case_types)]
 #![no_std]
+
 #[cfg(feature = "aux")]
 pub mod aux;
 #[cfg(feature = "elf")]
 pub mod elf;
+#[cfg(feature = "epoll")]
+pub mod epoll;
 #[cfg(feature = "errno")]
 pub mod errno;
 #[cfg(feature = "fcntl")]

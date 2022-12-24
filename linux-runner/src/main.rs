@@ -18,7 +18,7 @@ const SUPPORTED_ARCHES: &[SupportedArch] = &[
     },
 ];
 
-fn generate_files() -> [GenSpec; 16] {
+fn generate_files() -> [GenSpec; 17] {
     [
         GenSpec::new("aux", &["linux/auxvec.h"], |bldr: Builder| {
             bldr.allowlist_var("AT.*")
@@ -31,6 +31,9 @@ fn generate_files() -> [GenSpec; 16] {
         }),
         GenSpec::new("errno", &["linux/errno.h"], |bldr: Builder| {
             bldr.allowlist_var("E.*")
+        }),
+        GenSpec::new("epoll", &["linux/eventpoll.h"], |bldr: Builder| {
+            bldr.allowlist_type("epoll.*").allowlist_var("E.*")
         }),
         GenSpec::new("fcntl", &["linux/fcntl.h"], |bldr: Builder| {
             bldr.allowlist_var("O_.*")
