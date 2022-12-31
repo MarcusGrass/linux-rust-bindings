@@ -1,4 +1,5 @@
 #![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
 #![no_std]
 
 #[cfg(feature = "aux")]
@@ -11,6 +12,8 @@ pub mod epoll;
 pub mod errno;
 #[cfg(feature = "fcntl")]
 pub mod fcntl;
+#[cfg(feature = "io_uring")]
+pub mod io_uring;
 #[cfg(feature = "ioctl")]
 pub mod ioctl;
 #[cfg(feature = "mman")]
@@ -31,6 +34,8 @@ pub mod termios;
 pub mod time;
 #[cfg(feature = "types")]
 pub mod types;
+#[cfg(feature = "uio")]
+pub mod uio;
 #[cfg(feature = "utsname")]
 pub mod utsname;
 #[cfg(feature = "wait")]

@@ -18,7 +18,7 @@ const SUPPORTED_ARCHES: &[SupportedArch] = &[
     },
 ];
 
-fn generate_files() -> [GenSpec; 17] {
+fn generate_files() -> [GenSpec; 19] {
     [
         GenSpec::new("aux", &["linux/auxvec.h"], |bldr: Builder| {
             bldr.allowlist_var("AT.*")
@@ -42,6 +42,13 @@ fn generate_files() -> [GenSpec; 17] {
         }),
         GenSpec::new("ioctl", &["linux/ioctl.h"], |bldr: Builder| {
             bldr.allowlist_var("_IO.*")
+        }),
+        GenSpec::new("io_uring", &["linux/io_uring.h"], |bldr: Builder| {
+            bldr.allowlist_var("IO.*")
+                .allowlist_type("io_uring_params")
+                .allowlist_type("io_uring_sq.*")
+                .allowlist_type("io_uring_cq.*")
+                .allowlist_type("io_uring_op.*")
         }),
         GenSpec::new("mman", &["linux/mman.h"], |bldr: Builder| {
             bldr.allowlist_var("MAP.*").allowlist_var("PROT.*")
@@ -92,6 +99,9 @@ fn generate_files() -> [GenSpec; 17] {
         ),
         GenSpec::new("types", &["types.h"], |bldr: Builder| {
             bldr.allowlist_var("DT.*")
+        }),
+        GenSpec::new("uio", &["linux/uio.h"], |bldr: Builder| {
+            bldr.allowlist_type("iovec.*")
         }),
         GenSpec::new("utsname", &["linux/utsname.h"], |bldr: Builder| {
             bldr.allowlist_type("new_uts.*")
