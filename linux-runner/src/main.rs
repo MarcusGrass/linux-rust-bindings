@@ -18,7 +18,7 @@ const SUPPORTED_ARCHES: &[SupportedArch] = &[
     },
 ];
 
-fn generate_files() -> [GenSpec; 19] {
+fn generate_files() -> [GenSpec; 20] {
     [
         GenSpec::new("aux", &["linux/auxvec.h"], |bldr: Builder| {
             bldr.allowlist_var("AT.*")
@@ -39,6 +39,9 @@ fn generate_files() -> [GenSpec; 19] {
             bldr.allowlist_var("O_.*")
                 .allowlist_var("AT_.*")
                 .allowlist_var("F_.*")
+        }),
+        GenSpec::new("fs", &["linux/fs.h"], |bldr: Builder| {
+            bldr.allowlist_var("RENAME.*")
         }),
         GenSpec::new("ioctl", &["linux/ioctl.h"], |bldr: Builder| {
             bldr.allowlist_var("_IO.*")
@@ -71,7 +74,9 @@ fn generate_files() -> [GenSpec; 19] {
             |bldr: Builder| bldr.allowlist_var("AF.*").allowlist_type("sock.*"),
         ),
         GenSpec::new("stat", &["asm/stat.h", "linux/stat.h"], |bldr: Builder| {
-            bldr.allowlist_var("S_.*").allowlist_type("stat.*")
+            bldr.allowlist_var("S_.*")
+                .allowlist_var("STATX.*")
+                .allowlist_type("stat.*")
         }),
         GenSpec::new("termios", &["linux/termios.h"], |bldr: Builder| {
             bldr.allowlist_var("TC.*")

@@ -12,6 +12,8 @@ pub mod epoll;
 pub mod errno;
 #[cfg(feature = "fcntl")]
 pub mod fcntl;
+#[cfg(feature = "fs")]
+pub mod fs;
 #[cfg(feature = "io_uring")]
 pub mod io_uring;
 #[cfg(feature = "ioctl")]

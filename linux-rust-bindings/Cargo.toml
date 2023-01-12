@@ -9,7 +9,7 @@ license = "MPL-2.0"
 [features]
 default = ["all"]
 all = [
-    "aux", "elf", "errno", "epoll", "fcntl", "ioctl", "io_uring", "mman", "poll", "sched",
+    "aux", "elf", "errno", "epoll", "fcntl", "fs", "ioctl", "io_uring", "mman", "poll", "sched",
     "signal", "socket", "stat", "termios", "time", "types", "uio", "utsname", "wait"
 ]
 aux = []
@@ -17,6 +17,7 @@ elf = []
 errno = []
 epoll = []
 fcntl = []
+fs = []
 ioctl = []
 io_uring = []
 mman = []
