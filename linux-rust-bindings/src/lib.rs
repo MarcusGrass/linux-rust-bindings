@@ -1,5 +1,6 @@
 #![allow(non_camel_case_types)]
 #![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
 #![no_std]
 
 #[cfg(feature = "aux")]
@@ -14,6 +15,8 @@ pub mod errno;
 pub mod fcntl;
 #[cfg(feature = "fs")]
 pub mod fs;
+#[cfg(feature = "hidio")]
+pub mod hidio;
 #[cfg(feature = "io_uring")]
 pub mod io_uring;
 #[cfg(feature = "ioctl")]
@@ -38,10 +41,13 @@ pub mod time;
 pub mod types;
 #[cfg(feature = "uio")]
 pub mod uio;
+#[cfg(feature = "usb")]
+pub mod usb;
 #[cfg(feature = "utsname")]
 pub mod utsname;
 #[cfg(feature = "wait")]
 pub mod wait;
+
 
 #[cfg(test)]
 mod tests {}

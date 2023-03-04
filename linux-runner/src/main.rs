@@ -18,7 +18,7 @@ const SUPPORTED_ARCHES: &[SupportedArch] = &[
     },
 ];
 
-fn generate_files() -> [GenSpec; 20] {
+fn generate_files() -> [GenSpec; 22] {
     [
         GenSpec::new("aux", &["linux/auxvec.h"], |bldr: Builder| {
             bldr.allowlist_var("AT.*")
@@ -43,6 +43,11 @@ fn generate_files() -> [GenSpec; 20] {
         GenSpec::new("fs", &["linux/fs.h"], |bldr: Builder| {
             bldr.allowlist_var("RENAME.*")
         }),
+        GenSpec::new(
+            "hidio",
+            &["linux/hid.h", "linux/hidraw.h", "linux/hiddev.h"],
+            |bldr: Builder| bldr.allowlist_var("HID.*").allowlist_type("hid.*"),
+        ),
         GenSpec::new("ioctl", &["linux/ioctl.h"], |bldr: Builder| {
             bldr.allowlist_var("_IO.*")
         }),
@@ -81,6 +86,7 @@ fn generate_files() -> [GenSpec; 20] {
         GenSpec::new("termios", &["linux/termios.h"], |bldr: Builder| {
             bldr.allowlist_var("TC.*")
                 .allowlist_var("TIO.*")
+                .allowlist_var("ECHO.*")
                 //Input flags
                 .allowlist_var("I.*")
                 .allowlist_var("BRK.*")
@@ -111,6 +117,11 @@ fn generate_files() -> [GenSpec; 20] {
         GenSpec::new("utsname", &["linux/utsname.h"], |bldr: Builder| {
             bldr.allowlist_type("new_uts.*")
         }),
+        GenSpec::new(
+            "usb",
+            &["linux/usbdevice_fs.h", "linux/usbip.h", "linux/usb/ch9.h"],
+            |bldr: Builder| bldr.allowlist_type("usb.*").allowlist_var("USB.*"),
+        ),
         GenSpec::new("wait", &["linux/wait.h"], |bldr: Builder| {
             bldr.allowlist_var("W.*")
         }),
