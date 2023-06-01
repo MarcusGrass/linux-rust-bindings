@@ -221,7 +221,7 @@ fn base_builder(arch: &SupportedArch) -> Result<Builder> {
     Ok(bindgen::builder()
         .clang_arg("-std=gnu11")
         .clang_arg(format!("--target={}", arch.clang_target))
-        .detect_include_paths(false)
+        .detect_include_paths(true)
         .clang_arg(format!("-I{}", path_like_to_str(&incl)?))
         .layout_tests(false)
         .default_macro_constant_type(MacroTypeVariation::Signed)

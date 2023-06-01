@@ -48,6 +48,5 @@ pub mod utsname;
 #[cfg(feature = "wait")]
 pub mod wait;
 
-
 #[cfg(test)]
 mod tests {}
