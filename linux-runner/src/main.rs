@@ -18,7 +18,7 @@ const SUPPORTED_ARCHES: &[SupportedArch] = &[
     },
 ];
 
-fn generate_files() -> [GenSpec; 22] {
+fn generate_files() -> [GenSpec; 23] {
     [
         GenSpec::new("aux", &["linux/auxvec.h"], |bldr: Builder| {
             bldr.allowlist_var("AT.*")
@@ -42,6 +42,9 @@ fn generate_files() -> [GenSpec; 22] {
         }),
         GenSpec::new("fs", &["linux/fs.h"], |bldr: Builder| {
             bldr.allowlist_var("RENAME.*")
+        }),
+        GenSpec::new("futex", &["linux/futex.h"], |bldr: Builder| {
+            bldr.allowlist_var("FUTEX_.*")
         }),
         GenSpec::new(
             "hidio",

@@ -15,6 +15,8 @@ pub mod errno;
 pub mod fcntl;
 #[cfg(feature = "fs")]
 pub mod fs;
+#[cfg(feature = "futex")]
+pub mod futex;
 #[cfg(feature = "hidio")]
 pub mod hidio;
 #[cfg(feature = "io_uring")]
