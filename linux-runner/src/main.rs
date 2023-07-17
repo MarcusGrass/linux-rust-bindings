@@ -28,6 +28,10 @@ fn generate_files() -> [GenSpec; 23] {
                 .allowlist_type("Elf.*_Shdr")
                 .allowlist_type("Elf.*_Dyn")
                 .allowlist_type("Elf.*_Sym")
+                .allowlist_type("Elf.*_Phdr")
+                .allowlist_type("Elf.*_Rel.*")
+                .allowlist_var("PT_.*")
+                .allowlist_var("DT_.*")
         }),
         GenSpec::new("errno", &["linux/errno.h"], |bldr: Builder| {
             bldr.allowlist_var("E.*")

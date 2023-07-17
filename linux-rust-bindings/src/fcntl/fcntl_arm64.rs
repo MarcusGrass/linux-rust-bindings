@@ -79,3 +79,4 @@ pub const AT_STATX_SYNC_AS_STAT: i32 = 0;
 pub const AT_STATX_FORCE_SYNC: i32 = 8192;
 pub const AT_STATX_DONT_SYNC: i32 = 16384;
 pub const AT_RECURSIVE: i32 = 32768;
+pub const AT_HANDLE_FID: i32 = 512;

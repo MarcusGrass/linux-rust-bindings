@@ -30,6 +30,49 @@ impl<T> ::core::fmt::Debug for __IncompleteArrayField<T> {
         fmt.write_str("__IncompleteArrayField")
     }
 }
+#[repr(C)]
+pub struct __BindgenUnionField<T>(::core::marker::PhantomData<T>);
+impl<T> __BindgenUnionField<T> {
+    #[inline]
+    pub const fn new() -> Self {
+        __BindgenUnionField(::core::marker::PhantomData)
+    }
+    #[inline]
+    pub unsafe fn as_ref(&self) -> &T {
+        ::core::mem::transmute(self)
+    }
+    #[inline]
+    pub unsafe fn as_mut(&mut self) -> &mut T {
+        ::core::mem::transmute(self)
+    }
+}
+impl<T> ::core::default::Default for __BindgenUnionField<T> {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl<T> ::core::clone::Clone for __BindgenUnionField<T> {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self::new()
+    }
+}
+impl<T> ::core::marker::Copy for __BindgenUnionField<T> {}
+impl<T> ::core::fmt::Debug for __BindgenUnionField<T> {
+    fn fmt(&self, fmt: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        fmt.write_str("__BindgenUnionField")
+    }
+}
+impl<T> ::core::hash::Hash for __BindgenUnionField<T> {
+    fn hash<H: ::core::hash::Hasher>(&self, _state: &mut H) {}
+}
+impl<T> ::core::cmp::PartialEq for __BindgenUnionField<T> {
+    fn eq(&self, _other: &__BindgenUnionField<T>) -> bool {
+        true
+    }
+}
+impl<T> ::core::cmp::Eq for __BindgenUnionField<T> {}
 pub const USBDEVICE_SUPER_MAGIC: i32 = 40866;
 pub const USBDEVFS_MAXDRIVERNAME: i32 = 255;
 pub const USBDEVFS_URB_SHORT_NOT_OK: i32 = 1;
@@ -504,12 +547,26 @@ pub struct usb_config_descriptor {
     pub bMaxPower: __u8,
 }
 #[repr(C, packed)]
-#[derive(Debug, Copy, Clone)]
 pub struct usb_string_descriptor {
     pub bLength: __u8,
     pub bDescriptorType: __u8,
-    pub wData: [__le16; 1usize],
+    pub __bindgen_anon_1: usb_string_descriptor__bindgen_ty_1,
 }
+#[repr(C)]
+pub struct usb_string_descriptor__bindgen_ty_1 {
+    pub legacy_padding: __BindgenUnionField<__le16>,
+    pub __bindgen_anon_1: __BindgenUnionField<usb_string_descriptor__bindgen_ty_1__bindgen_ty_1>,
+    pub bindgen_union_field: u16,
+}
+#[repr(C)]
+#[derive(Debug)]
+pub struct usb_string_descriptor__bindgen_ty_1__bindgen_ty_1 {
+    pub __empty_wData: usb_string_descriptor__bindgen_ty_1__bindgen_ty_1__bindgen_ty_1,
+    pub wData: __IncompleteArrayField<__le16>,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct usb_string_descriptor__bindgen_ty_1__bindgen_ty_1__bindgen_ty_1 {}
 #[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct usb_interface_descriptor {
@@ -692,7 +749,6 @@ pub struct usb_plat_dev_cap_descriptor {
     pub CapabilityData: __IncompleteArrayField<__u8>,
 }
 #[repr(C, packed)]
-#[derive(Debug, Copy, Clone)]
 pub struct usb_ssp_cap_descriptor {
     pub bLength: __u8,
     pub bDescriptorType: __u8,
@@ -701,8 +757,24 @@ pub struct usb_ssp_cap_descriptor {
     pub bmAttributes: __le32,
     pub wFunctionalitySupport: __le16,
     pub wReserved: __le16,
-    pub bmSublinkSpeedAttr: [__le32; 1usize],
+    pub __bindgen_anon_1: usb_ssp_cap_descriptor__bindgen_ty_1,
 }
+#[repr(C)]
+pub struct usb_ssp_cap_descriptor__bindgen_ty_1 {
+    pub legacy_padding: __BindgenUnionField<__le32>,
+    pub __bindgen_anon_1: __BindgenUnionField<usb_ssp_cap_descriptor__bindgen_ty_1__bindgen_ty_1>,
+    pub bindgen_union_field: u32,
+}
+#[repr(C)]
+#[derive(Debug)]
+pub struct usb_ssp_cap_descriptor__bindgen_ty_1__bindgen_ty_1 {
+    pub __empty_bmSublinkSpeedAttr:
+        usb_ssp_cap_descriptor__bindgen_ty_1__bindgen_ty_1__bindgen_ty_1,
+    pub bmSublinkSpeedAttr: __IncompleteArrayField<__le32>,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct usb_ssp_cap_descriptor__bindgen_ty_1__bindgen_ty_1__bindgen_ty_1 {}
 #[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct usb_pd_cap_descriptor {
