@@ -26,6 +26,8 @@ pub mod io_uring;
 pub mod ioctl;
 #[cfg(feature = "mman")]
 pub mod mman;
+#[cfg(feature = "mount")]
+pub mod mount;
 #[cfg(feature = "poll")]
 pub mod poll;
 #[cfg(feature = "sched")]

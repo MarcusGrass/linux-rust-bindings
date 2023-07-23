@@ -18,7 +18,7 @@ const SUPPORTED_ARCHES: &[SupportedArch] = &[
     },
 ];
 
-fn generate_files() -> [GenSpec; 23] {
+fn generate_files() -> [GenSpec; 24] {
     [
         GenSpec::new("auxvec", &["linux/auxvec.h"], |bldr: Builder| {
             bldr.allowlist_var("AT.*")
@@ -67,6 +67,9 @@ fn generate_files() -> [GenSpec; 23] {
         }),
         GenSpec::new("mman", &["linux/mman.h"], |bldr: Builder| {
             bldr.allowlist_var("MAP.*").allowlist_var("PROT.*")
+        }),
+        GenSpec::new("mount", &["linux/mount.h"], |bldr: Builder| {
+            bldr.allowlist_var("MS.*")
         }),
         GenSpec::new("poll", &["linux/poll.h"], |bldr: Builder| {
             bldr.allowlist_var("POLL.*").allowlist_type("poll.*")

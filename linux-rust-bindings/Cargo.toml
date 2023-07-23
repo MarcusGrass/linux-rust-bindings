@@ -1,6 +1,6 @@
 [package]
 name = "linux-rust-bindings"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MPL-2.0"
 readme = "../Readme.md"
@@ -16,8 +16,8 @@ keywords = ["ffi", "bindings", "operating", "system", "linux"]
 [features]
 default = ["all"]
 all = [
-    "auxvec", "elf", "errno", "epoll", "fcntl", "fs", "futex","hidio","ioctl", "io_uring", "mman", "poll", "sched",
-    "signal", "socket", "stat", "termios", "time", "types", "uio", "usb", "utsname", "wait"
+    "auxvec", "elf", "errno", "epoll", "fcntl", "fs", "futex","hidio","ioctl", "io_uring", "mman", "mount",
+    "poll", "sched", "signal", "socket", "stat", "termios", "time", "types", "uio", "usb", "utsname", "wait"
 ]
 auxvec = []
 elf = []
@@ -30,6 +30,7 @@ hidio = []
 ioctl = []
 io_uring = []
 mman = []
+mount = []
 poll = []
 sched = []
 signal = []
