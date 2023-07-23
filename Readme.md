@@ -4,6 +4,9 @@ Constants only, since there is to my knowledge only one way to call functions di
 the kernel, and that's through the `vDSO`, only constants needed to communicate through
 the syscall API are generated.
 
+The generated code is separated into features based on kernel headers, structs from `fcntl.h` is under 
+the feature `#[cfg(feature = "fcntl)]`, and so forth.  
+
 ## Get sources
 
 Get from [git](https://github.com/torvalds/linux), [kernel archives](https://www.kernel.org/), or wherever.
@@ -17,3 +20,6 @@ Get from [git](https://github.com/torvalds/linux), [kernel archives](https://www
 `<arch>` is the rust notation of the architecture, ie 64-bit arm is `aarch64`.
 
 Will generate the kernel headers, mind that they are licensed under `LGPL` or `MIT`.  
+
+## License
+This project is licensed under MPL-2.0, see the license [here.](LICENSE)
