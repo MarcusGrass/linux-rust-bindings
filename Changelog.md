@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Fixed
 
+## [0.1.1] - 2023-07-23
+### Added
+- Mount flags under the `mount`-feature
+
+### Changed
+- None
+
+### Fixed
+- None
+
+
 ## [0.1.0] - 2023-07-23
 ### Added
 - Runner that generates Rust code from linux sources for `x86_64` and `aarch64`.  
