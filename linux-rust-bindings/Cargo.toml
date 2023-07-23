@@ -16,10 +16,10 @@ keywords = ["ffi", "bindings", "operating", "system", "linux"]
 [features]
 default = ["all"]
 all = [
-    "aux", "elf", "errno", "epoll", "fcntl", "fs", "futex","hidio","ioctl", "io_uring", "mman", "poll", "sched",
+    "auxvec", "elf", "errno", "epoll", "fcntl", "fs", "futex","hidio","ioctl", "io_uring", "mman", "poll", "sched",
     "signal", "socket", "stat", "termios", "time", "types", "uio", "usb", "utsname", "wait"
 ]
-aux = []
+auxvec = []
 elf = []
 errno = []
 epoll = []

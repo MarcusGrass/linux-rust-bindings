@@ -20,7 +20,7 @@ const SUPPORTED_ARCHES: &[SupportedArch] = &[
 
 fn generate_files() -> [GenSpec; 23] {
     [
-        GenSpec::new("aux", &["linux/auxvec.h"], |bldr: Builder| {
+        GenSpec::new("auxvec", &["linux/auxvec.h"], |bldr: Builder| {
             bldr.allowlist_var("AT.*")
         }),
         GenSpec::new("elf", &["linux/elf.h"], |bldr: Builder| {
@@ -206,7 +206,7 @@ async fn generate(gen: GenSpec, out_path: &Path) -> Result<()> {
         })
     }
     write_bindings(
-        &out_path,
+        out_path,
         GeneratedBinds {
             bind_name: gen.mod_name.to_string(),
             arch: arch_specific,
@@ -229,7 +229,7 @@ fn base_builder(arch: &SupportedArch) -> Result<Builder> {
         .clang_arg("-std=gnu11")
         .clang_arg(format!("--target={}", arch.clang_target))
         .detect_include_paths(true)
-        .clang_arg(format!("-I{}", path_like_to_str(&incl)?))
+        .clang_arg(format!("-I{}", path_like_to_str(incl)?))
         .layout_tests(false)
         .default_macro_constant_type(MacroTypeVariation::Signed)
         .use_core())

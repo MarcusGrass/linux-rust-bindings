@@ -1,10 +1,11 @@
 #![allow(non_camel_case_types)]
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
+#![allow(clippy::missing_safety_doc)]
 #![no_std]
 
-#[cfg(feature = "aux")]
-pub mod aux;
+#[cfg(feature = "auxvec")]
+pub mod auxvec;
 #[cfg(feature = "elf")]
 pub mod elf;
 #[cfg(feature = "epoll")]
