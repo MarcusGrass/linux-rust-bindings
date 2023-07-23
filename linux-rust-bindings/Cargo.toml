@@ -3,6 +3,13 @@ name = "linux-rust-bindings"
 version = "0.1.0"
 edition = "2021"
 license = "MPL-2.0"
+readme = "../Readme.md"
+repository = "https://github.com/MarcusGrass/linux-rust-bindings"
+homepage = "https://github.com/MarcusGrass/linux-rust-bindings"
+description = "Rust structs for Linux kernel structures"
+documentation = "https://docs.rs/linux-rust-bindings"
+categories = ["external-ffi-bindings", "no-std", "os"]
+keywords = ["ffi", "bindings", "operating", "system", "linux"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -1,8 +1,8 @@
 # Rust bindings directly from the Linux sources
 
 Constants only, since there is to my knowledge only one way to call functions directly from
-the kernel, and that's through the `vDSO`, we only generate the constants needed to communicate through
-the syscall API.
+the kernel, and that's through the `vDSO`, only constants needed to communicate through
+the syscall API are generated.
 
 ## Get sources
 
