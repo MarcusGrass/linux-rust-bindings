@@ -45,7 +45,7 @@ fn generate_files() -> [GenSpec; 24] {
                 .allowlist_var("F_.*")
         }),
         GenSpec::new("fs", &["linux/fs.h"], |bldr: Builder| {
-            bldr.allowlist_var("RENAME.*")
+            bldr.allowlist_var("RENAME.*").allowlist_var("SEEK.*")
         }),
         GenSpec::new("futex", &["linux/futex.h"], |bldr: Builder| {
             bldr.allowlist_var("FUTEX_.*")
@@ -85,8 +85,12 @@ fn generate_files() -> [GenSpec; 24] {
         }),
         GenSpec::new(
             "socket",
-            &["linux/un.h", "asm/socket.h"],
-            |bldr: Builder| bldr.allowlist_var("AF.*").allowlist_type("sock.*"),
+            &["linux/net.h", "linux/un.h", "asm/socket.h"],
+            |bldr: Builder| {
+                bldr.allowlist_var("AF.*")
+                    .allowlist_type("sock.*")
+                    .allowlist_type("msg.*")
+            },
         ),
         GenSpec::new("stat", &["asm/stat.h", "linux/stat.h"], |bldr: Builder| {
             bldr.allowlist_var("S_.*")
