@@ -13,3 +13,20 @@ pub struct sockaddr_un {
     pub sun_family: __kernel_sa_family_t,
     pub sun_path: [::core::ffi::c_char; 108usize],
 }
+pub type __u16 = ::core::ffi::c_ushort;
+pub type __u32 = ::core::ffi::c_uint;
+pub type __be16 = __u16;
+pub type __be32 = __u32;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct in_addr {
+    pub s_addr: __be32,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct sockaddr_in {
+    pub sin_family: __kernel_sa_family_t,
+    pub sin_port: __be16,
+    pub sin_addr: in_addr,
+    pub __pad: [::core::ffi::c_uchar; 8usize],
+}

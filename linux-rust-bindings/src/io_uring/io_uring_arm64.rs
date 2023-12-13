@@ -93,7 +93,11 @@ pub const IORING_SETUP_SQE128: i32 = 1024;
 pub const IORING_SETUP_CQE32: i32 = 2048;
 pub const IORING_SETUP_SINGLE_ISSUER: i32 = 4096;
 pub const IORING_SETUP_DEFER_TASKRUN: i32 = 8192;
+pub const IORING_SETUP_NO_MMAP: i32 = 16384;
+pub const IORING_SETUP_REGISTERED_FD_ONLY: i32 = 32768;
+pub const IORING_SETUP_NO_SQARRAY: i32 = 65536;
 pub const IORING_URING_CMD_FIXED: i32 = 1;
+pub const IORING_URING_CMD_POLLED: i64 = 2147483648;
 pub const IORING_FSYNC_DATASYNC: i32 = 1;
 pub const IORING_TIMEOUT_ABS: i32 = 1;
 pub const IORING_TIMEOUT_UPDATE: i32 = 2;
@@ -112,6 +116,8 @@ pub const IORING_ASYNC_CANCEL_ALL: i32 = 1;
 pub const IORING_ASYNC_CANCEL_FD: i32 = 2;
 pub const IORING_ASYNC_CANCEL_ANY: i32 = 4;
 pub const IORING_ASYNC_CANCEL_FD_FIXED: i32 = 8;
+pub const IORING_ASYNC_CANCEL_USERDATA: i32 = 16;
+pub const IORING_ASYNC_CANCEL_OP: i32 = 32;
 pub const IORING_RECVSEND_POLL_FIRST: i32 = 1;
 pub const IORING_RECV_MULTISHOT: i32 = 2;
 pub const IORING_RECVSEND_FIXED_BUF: i32 = 4;
@@ -334,7 +340,7 @@ pub struct io_sqring_offsets {
     pub dropped: __u32,
     pub array: __u32,
     pub resv1: __u32,
-    pub resv2: __u64,
+    pub user_addr: __u64,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -347,7 +353,7 @@ pub struct io_cqring_offsets {
     pub cqes: __u32,
     pub flags: __u32,
     pub resv1: __u32,
-    pub resv2: __u64,
+    pub user_addr: __u64,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

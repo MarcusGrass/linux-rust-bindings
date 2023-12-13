@@ -85,7 +85,7 @@ fn generate_files() -> [GenSpec; 24] {
         }),
         GenSpec::new(
             "socket",
-            &["linux/net.h", "linux/un.h", "asm/socket.h"],
+            &["linux/net.h", "linux/un.h", "linux/in.h", "asm/socket.h"],
             |bldr: Builder| {
                 bldr.allowlist_var("AF.*")
                     .allowlist_type("sock.*")
